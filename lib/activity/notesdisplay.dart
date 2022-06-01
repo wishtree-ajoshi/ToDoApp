@@ -1,5 +1,5 @@
+import 'package:date_time_picker/date_time_picker.dart';
 import 'package:flutter/material.dart';
-
 import '../database model/hive_data_model.dart';
 
 class NotesPage extends StatefulWidget {
@@ -10,8 +10,8 @@ class NotesPage extends StatefulWidget {
 }
 
 bool? check = false;
-String? title;
-String? desc;
+String? title, desc, dateSelected, toDisplay;
+
 TextEditingController titleController = TextEditingController();
 TextEditingController detailsController = TextEditingController();
 
@@ -31,6 +31,8 @@ class _NotesPageState extends State<NotesPage> {
 
   getListOfNotes() async {
     notesList = await HiveDataModel.getNotes();
+    notesList.sort((a, b) => a['toBeCompleted'].compareTo(b['toBeCompleted']));
+
     setState(() {});
   }
 
@@ -38,13 +40,28 @@ class _NotesPageState extends State<NotesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+          centerTitle: true,
           title: const Text(
-        "TODO List",
-        style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-      )),
+            "TODO List",
+            style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+          )),
       body: (ListView.builder(
         itemCount: notesList.length,
         itemBuilder: (context, index) => ListTile(
+          minLeadingWidth: 10,
+          leading: Column(
+            children: [
+              const Text(
+                "Do by:",
+                style: TextStyle(fontStyle: FontStyle.italic, fontSize: 18),
+              ),
+              Text(
+                "${notesList[index]['toDisplay']}",
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+            ],
+          ),
           title: Text(
             "${notesList[index]['Title']}",
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
@@ -61,6 +78,8 @@ class _NotesPageState extends State<NotesPage> {
                 });
               }),
           onTap: () {
+            updateTitleController.text = notesList[index]['Title'];
+            updateDetailsController.text = notesList[index]['Description'];
             showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -73,28 +92,35 @@ class _NotesPageState extends State<NotesPage> {
                             autofocus: true,
                             controller: updateTitleController,
                             maxLength: 20,
-                            decoration: InputDecoration(
-                                label: const Text("Title"),
-                                hintText: notesList[index]['Title']),
+                            decoration: const InputDecoration(
+                              label: Text("Title"),
+                            ),
                           ),
                           TextFormField(
                             controller: updateDetailsController,
-                            decoration: InputDecoration(
-                                label: const Text("Description"),
-                                hintText: notesList[index]['Description']),
+                            decoration: const InputDecoration(
+                              label: Text("Description"),
+                            ),
                           ),
-                          Row(
-                            children: [
-                              const Text("Completed"),
-                              Checkbox(
-                                  value: notesList[index]['isCompleted'],
-                                  onChanged: (value) {
-                                    setState(() {
-                                      notesList[index]['isCompleted'] = value;
-                                    });
-                                  }),
-                            ],
-                          )
+                          DateTimePicker(
+                            dateMask: 'dd/MM/yyyy',
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime.now(),
+                            type: DateTimePickerType.date,
+                            lastDate:
+                                DateTime.now().add(const Duration(days: 730)),
+                            initialValue: notesList[index]['toBeCompleted'],
+                            onChanged: (value) {
+                              if (value.isNotEmpty) {
+                                List arr = value.split('-');
+                                String value1 = "${arr[2]}/${arr[1]}/${arr[0]}";
+                                setState(() {
+                                  notesList[index]['toBeCompleted'] = value;
+                                  notesList[index]['toDisplay'] = value1;
+                                });
+                              }
+                            },
+                          ),
                         ],
                       ),
                       actions: [
@@ -108,6 +134,9 @@ class _NotesPageState extends State<NotesPage> {
                                   'Id': notesList[index]['Id'],
                                   'isCompleted': notesList[index]
                                       ['isCompleted'],
+                                  'toBeCompleted': notesList[index]
+                                      ['toBeCompleted'],
+                                  'toDisplay': notesList[index]['toDisplay'],
                                 });
                             updateTitleController.clear();
                             updateDetailsController.clear();
@@ -149,6 +178,25 @@ class _NotesPageState extends State<NotesPage> {
                             label: Text("Description"),
                           ),
                         ),
+                        DateTimePicker(
+                          dateMask: 'dd/MM/yyyy',
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime.now(),
+                          type: DateTimePickerType.date,
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 730)),
+                          dateLabelText: "Select Date",
+                          onChanged: (value) {
+                            if (value.isNotEmpty) {
+                              List arr = value.split('-');
+                              String value1 = "${arr[2]}/${arr[1]}/${arr[0]}";
+                              setState(() {
+                                dateSelected = value;
+                                toDisplay = value1;
+                              });
+                            }
+                          },
+                        ),
                       ],
                     ),
                     actions: [
@@ -159,11 +207,12 @@ class _NotesPageState extends State<NotesPage> {
                             'Description': detailsController.text,
                             'Id': HiveDataModel.id,
                             'isCompleted': false,
+                            'toBeCompleted': dateSelected,
+                            'toDisplay': toDisplay,
                           });
                           title = titleController.text;
                           desc = detailsController.text;
                           getListOfNotes();
-
                           HiveDataModel.id = HiveDataModel.id + 1;
                           titleController.clear();
                           detailsController.clear();

@@ -1,10 +1,9 @@
+import 'package:database_demo/activity/notesdisplay.dart';
 import 'package:hive/hive.dart';
-
-import '../activity/notesdisplay.dart';
 
 class HiveDataModel {
   static Box? todoList;
-  static int id = (notesList.isEmpty) ? 0 : notesList.length;
+  static int id = (notesList.isEmpty) ? 0 : notesList.length + 1;
 
   createBox() async {
     todoList = await Hive.openBox('todoList');
@@ -21,15 +20,12 @@ class HiveDataModel {
   }
 
   static updateNote({key, value}) async {
-    todoList?.putAt(key, value).then((value) {
+    todoList?.put(key, value).then((value) {
       getNotes();
     });
   }
 
   static deleteNote({key}) async {
-    if (id > 0) {
-      id = id - 1;
-    }
     todoList?.delete(key);
     return getNotes();
   }
