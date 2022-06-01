@@ -36,7 +36,6 @@ class _NotesPageState extends State<NotesPage> {
 
   @override
   Widget build(BuildContext context) {
-    print(".......${HiveDataModel.todoList?.keys}");
     return Scaffold(
       appBar: AppBar(
           title: const Text(
@@ -62,8 +61,6 @@ class _NotesPageState extends State<NotesPage> {
                 });
               }),
           onTap: () {
-            print(
-                "Before update:  key: ${HiveDataModel.id}....value:${notesList}");
             showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -115,8 +112,6 @@ class _NotesPageState extends State<NotesPage> {
                             updateTitleController.clear();
                             updateDetailsController.clear();
                             getListOfNotes();
-                            print(
-                                "After updating: key: ${HiveDataModel.id}....value:${notesList}");
                             Navigator.of(context).pop();
                           },
                           child: const Text('Update'),
@@ -126,12 +121,8 @@ class _NotesPageState extends State<NotesPage> {
           },
           tileColor: Colors.orange.shade200,
           onLongPress: () {
-            print(
-                "before delete:.....key: ${HiveDataModel.id}....value:${notesList}");
             HiveDataModel.deleteNote(key: notesList[index]['Id']);
             getListOfNotes();
-            print(
-                "After delete.....key: ${HiveDataModel.id}....value:${notesList}");
           },
         ),
       )),
@@ -181,10 +172,7 @@ class _NotesPageState extends State<NotesPage> {
                         child: const Text('Submit'),
                       ),
                     ],
-                  )).then((value) => setState(() {
-                print(
-                    "After Adding...key: ${HiveDataModel.id}....value:${notesList}");
-              }));
+                  )).then((value) => setState(() {}));
         },
         elevation: 10,
         isExtended: true,
