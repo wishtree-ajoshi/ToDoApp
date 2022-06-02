@@ -4,18 +4,19 @@ import 'package:flutter/material.dart';
 import '../database model/hive_data_model.dart';
 
 class NoteUpdate extends StatefulWidget {
-  String title, description, toBeCompleted, toDisplay;
+  String title, description, toBeCompleted, toDisplay, timeDisplay;
   int id;
   bool isCompleted;
-  NoteUpdate(
-      {Key? key,
-      this.title = '',
-      this.description = '',
-      this.id = 0,
-      this.toBeCompleted = '',
-      this.toDisplay = '',
-      this.isCompleted = false})
-      : super(key: key);
+  NoteUpdate({
+    Key? key,
+    this.title = '',
+    this.description = '',
+    this.id = 0,
+    this.toBeCompleted = '',
+    this.toDisplay = '',
+    this.isCompleted = false,
+    this.timeDisplay = '',
+  }) : super(key: key);
 
   @override
   State<NoteUpdate> createState() => _NoteUpdateState();
@@ -66,16 +67,26 @@ class _NoteUpdateState extends State<NoteUpdate> {
               child: DateTimePicker(
                 dateMask: 'dd/MM/yyyy',
                 initialDate: DateTime.now(),
-                firstDate: DateTime.now(),
-                type: DateTimePickerType.date,
+                firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                type: DateTimePickerType.dateTimeSeparate,
                 lastDate: DateTime.now().add(const Duration(days: 730)),
                 initialValue: widget.toBeCompleted,
                 onChanged: (value) {
                   if (value.isNotEmpty) {
                     List arr = value.split('-');
-                    String value1 = "${arr[2]}/${arr[1]}/${arr[0]}";
-                    widget.toBeCompleted = value;
-                    widget.toDisplay = value1;
+                    List arr2 = arr[2].split(' ');
+                    print(">>>>>>>>>>>>$arr");
+                    print(">>>>>>>>>>>>$arr2");
+                    setState(() {
+                      String value1 = "${arr2[0]}/${arr[1]}/${arr[0]}";
+                      String time = "${arr2.last}";
+                      print("*********${value1}");
+                      print("----------$value");
+                      widget.toDisplay = value1;
+                      widget.toBeCompleted = value;
+                      widget.timeDisplay = time;
+                      print("----------${widget.timeDisplay}");
+                    });
                   }
                 },
               ),

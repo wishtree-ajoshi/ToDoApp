@@ -15,7 +15,7 @@ class AddNotes extends StatefulWidget {
   State<AddNotes> createState() => _AddNotesState();
 }
 
-String? title, desc, dateSelected, toDisplay;
+String? title, desc, dateSelected, toDisplay, timeDisplay;
 
 TextEditingController titleController = TextEditingController();
 TextEditingController detailsController = TextEditingController();
@@ -59,17 +59,25 @@ class _AddNotesState extends State<AddNotes> {
               child: DateTimePicker(
                 dateMask: 'dd/MM/yyyy',
                 initialDate: DateTime.now(),
-                firstDate: DateTime.now(),
-                type: DateTimePickerType.date,
+                firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                type: DateTimePickerType.dateTimeSeparate,
                 lastDate: DateTime.now().add(const Duration(days: 730)),
                 dateLabelText: "Select Date",
                 onChanged: (value) {
                   if (value.isNotEmpty) {
                     List arr = value.split('-');
-                    String value1 = "${arr[2]}/${arr[1]}/${arr[0]}";
+                    List arr2 = arr[2].split(' ');
+                    print(">>>>>>>>>>>>$arr");
+                    print(">>>>>>>>>>>>$arr2");
                     setState(() {
-                      dateSelected = value;
+                      String value1 = "${arr2[0]}/${arr[1]}/${arr[0]}";
+                      String time = "${arr2.last}";
+                      print("*********${value1}");
+                      print("----------$value");
                       toDisplay = value1;
+                      dateSelected = value;
+                      timeDisplay = time;
+                      print("----------$timeDisplay");
                     });
                   }
                 },
@@ -87,6 +95,7 @@ class _AddNotesState extends State<AddNotes> {
                       'isCompleted': false,
                       'toBeCompleted': dateSelected,
                       'toDisplay': toDisplay,
+                      'timeDisplay': timeDisplay,
                     });
                     title = titleController.text;
                     desc = detailsController.text;

@@ -75,12 +75,14 @@ class _NotesDisplayState extends State<NotesDisplay> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => NoteUpdate(
-                      title: notesList[index]['Title'],
-                      description: notesList[index]['Description'],
-                      id: notesList[index]['Id'],
-                      toBeCompleted: notesList[index]['toBeCompleted'],
-                      toDisplay: notesList[index]['toDisplay'],
-                      isCompleted: notesList[index]['isCompleted']),
+                    title: notesList[index]['Title'],
+                    description: notesList[index]['Description'],
+                    id: notesList[index]['Id'],
+                    toBeCompleted: notesList[index]['toBeCompleted'],
+                    toDisplay: notesList[index]['toDisplay'],
+                    isCompleted: notesList[index]['isCompleted'],
+                    timeDisplay: notesList[index]['timeDisplay'],
+                  ),
                 ));
             if (result == 'updated') {
               getListOfNotes();
