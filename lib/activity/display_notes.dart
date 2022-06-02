@@ -80,7 +80,8 @@ class _NotesDisplayState extends State<NotesDisplay> {
                       description: notesList[index]['Description'],
                       id: notesList[index]['Id'],
                       toBeCompleted: notesList[index]['toBeCompleted'],
-                      toDisplay: notesList[index]['toDisplay']),
+                      toDisplay: notesList[index]['toDisplay'],
+                      isCompleted: notesList[index]['isCompleted']),
                 ));
             getListOfNotes();
           },

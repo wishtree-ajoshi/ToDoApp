@@ -1,3 +1,4 @@
+import 'package:database_demo/activity/display_notes.dart';
 import 'package:date_time_picker/date_time_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -21,32 +22,30 @@ class NoteUpdate extends StatefulWidget {
   State<NoteUpdate> createState() => _NoteUpdateState();
 }
 
-//List noteList = [];
+List notesList = [];
 TextEditingController updateTitleController = TextEditingController();
 TextEditingController updateDetailsController = TextEditingController();
 
 class _NoteUpdateState extends State<NoteUpdate> {
   @override
   void initState() {
-    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-    //   getListOfNotes();
-    // });
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      getListOfNotes();
+    });
     super.initState();
   }
 
-  // getListOfNotes() async {
-  //   notesList = await HiveDataModel.getNotes();
-  //   noteList.sort((a, b) => a['toBeCompleted'].compareTo(b['toBeCompleted']));
+  getListOfNotes() async {
+    notesList = await HiveDataModel.getNotes();
+    notesList.sort((a, b) => a['toBeCompleted'].compareTo(b['toBeCompleted']));
 
-  //   setState(() {});
-  // }
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
     updateTitleController.text = widget.title;
     updateDetailsController.text = widget.description;
-    //noteList = widget.notesList.cast().toList();
-    //print("-------${noteList.cast().toList()}");
     return Scaffold(
       appBar: AppBar(
         title: const Text('Update Note'),
@@ -82,10 +81,8 @@ class _NoteUpdateState extends State<NoteUpdate> {
               if (value.isNotEmpty) {
                 List arr = value.split('-');
                 String value1 = "${arr[2]}/${arr[1]}/${arr[0]}";
-                setState(() {
-                  widget.toBeCompleted = value;
-                  widget.toDisplay = value1;
-                });
+                widget.toBeCompleted = value;
+                widget.toDisplay = value1;
               }
             },
           ),
@@ -96,14 +93,13 @@ class _NoteUpdateState extends State<NoteUpdate> {
                 'Description': updateDetailsController.text,
                 'Id': widget.id,
                 'isCompleted': widget.isCompleted,
-                'toBeCompleted': widget.notesList[widget.index]
-                    ['toBeCompleted'],
-                'toDisplay': widget.notesList[widget.index]['toDisplay'],
+                'toBeCompleted': widget.toBeCompleted,
+                'toDisplay': widget.toDisplay,
               });
+              getListOfNotes();
               updateTitleController.clear();
               updateDetailsController.clear();
-              getListOfNotes();
-              Navigator.of(context).pop(widget.notesList);
+              Navigator.of(context).pop(notesList);
             },
             child: const Text('Update'),
           ),
