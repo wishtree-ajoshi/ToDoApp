@@ -71,8 +71,7 @@ class _NotesDisplayState extends State<NotesDisplay> {
                 });
               }),
           onTap: () async {
-            print(">>>>>>>>${notesList}");
-            notesList = await Navigator.push(
+            String result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => NoteUpdate(
@@ -83,7 +82,9 @@ class _NotesDisplayState extends State<NotesDisplay> {
                       toDisplay: notesList[index]['toDisplay'],
                       isCompleted: notesList[index]['isCompleted']),
                 ));
-            getListOfNotes();
+            if (result == 'updated') {
+              getListOfNotes();
+            }
           },
           tileColor: Colors.orange.shade200,
           onLongPress: () {
@@ -94,14 +95,16 @@ class _NotesDisplayState extends State<NotesDisplay> {
       )),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          notesList = await Navigator.push(
+          String result = await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => AddNotes(
                   notesList: [notesList],
                 ),
               ));
-          getListOfNotes();
+          if (result == 'added') {
+            getListOfNotes();
+          }
         },
         elevation: 10,
         isExtended: true,
