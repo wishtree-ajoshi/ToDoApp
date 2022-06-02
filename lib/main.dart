@@ -1,7 +1,6 @@
+import 'package:database_demo/activity/display_notes.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
-import 'activity/notesdisplay.dart';
 import 'database model/hive_data_model.dart';
 
 late Box box;
@@ -22,7 +21,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.orange,
       ),
-      home: const NotesPage(),
+      home: const NotesDisplay(),
     );
   }
 }
