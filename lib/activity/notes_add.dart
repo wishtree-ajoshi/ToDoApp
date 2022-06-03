@@ -62,22 +62,18 @@ class _AddNotesState extends State<AddNotes> {
                 firstDate: DateTime.now().subtract(const Duration(days: 30)),
                 type: DateTimePickerType.dateTimeSeparate,
                 lastDate: DateTime.now().add(const Duration(days: 730)),
+                timeLabelText: "Select Time",
                 dateLabelText: "Select Date",
                 onChanged: (value) {
                   if (value.isNotEmpty) {
                     List arr = value.split('-');
                     List arr2 = arr[2].split(' ');
-                    print(">>>>>>>>>>>>$arr");
-                    print(">>>>>>>>>>>>$arr2");
                     setState(() {
                       String value1 = "${arr2[0]}/${arr[1]}/${arr[0]}";
                       String time = "${arr2.last}";
-                      print("*********${value1}");
-                      print("----------$value");
                       toDisplay = value1;
-                      dateSelected = value;
+                      dateSelected = "$value:00";
                       timeDisplay = time;
-                      print("----------$timeDisplay");
                     });
                   }
                 },

@@ -75,17 +75,12 @@ class _NoteUpdateState extends State<NoteUpdate> {
                   if (value.isNotEmpty) {
                     List arr = value.split('-');
                     List arr2 = arr[2].split(' ');
-                    print(">>>>>>>>>>>>$arr");
-                    print(">>>>>>>>>>>>$arr2");
                     setState(() {
                       String value1 = "${arr2[0]}/${arr[1]}/${arr[0]}";
                       String time = "${arr2.last}";
-                      print("*********${value1}");
-                      print("----------$value");
                       widget.toDisplay = value1;
-                      widget.toBeCompleted = value;
+                      widget.toBeCompleted = '$value:00';
                       widget.timeDisplay = time;
-                      print("----------${widget.timeDisplay}");
                     });
                   }
                 },
@@ -103,6 +98,7 @@ class _NoteUpdateState extends State<NoteUpdate> {
                       'isCompleted': widget.isCompleted,
                       'toBeCompleted': widget.toBeCompleted,
                       'toDisplay': widget.toDisplay,
+                      'timeDisplay': widget.timeDisplay,
                     });
                     updateTitleController.clear();
                     updateDetailsController.clear();

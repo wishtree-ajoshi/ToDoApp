@@ -12,6 +12,8 @@ class NotesDisplay extends StatefulWidget {
 }
 
 List notesList = [];
+int i = 0;
+String currentTime = "${DateTime.now()}";
 
 class _NotesDisplayState extends State<NotesDisplay> {
   @override
@@ -25,7 +27,6 @@ class _NotesDisplayState extends State<NotesDisplay> {
   getListOfNotes() async {
     notesList = await HiveDataModel.getNotes();
     notesList.sort((a, b) => a['toBeCompleted'].compareTo(b['toBeCompleted']));
-
     setState(() {});
   }
 
@@ -46,12 +47,17 @@ class _NotesDisplayState extends State<NotesDisplay> {
             children: [
               const Text(
                 "Do by:",
-                style: TextStyle(fontStyle: FontStyle.italic, fontSize: 18),
+                style: TextStyle(fontStyle: FontStyle.italic, fontSize: 15),
               ),
               Text(
                 "${notesList[index]['toDisplay']}",
                 style:
                     const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+              Text(
+                "${notesList[index]['timeDisplay']}",
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
               ),
             ],
           ),
@@ -88,7 +94,10 @@ class _NotesDisplayState extends State<NotesDisplay> {
               getListOfNotes();
             }
           },
-          tileColor: Colors.orange.shade200,
+          tileColor:
+              (i < currentTime.compareTo(notesList[index]['toBeCompleted'])
+                  ? Colors.blueAccent
+                  : Colors.orangeAccent),
           onLongPress: () {
             HiveDataModel.deleteNote(key: notesList[index]['Id']);
             getListOfNotes();
