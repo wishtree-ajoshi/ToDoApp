@@ -1,6 +1,9 @@
 import 'package:database_demo/activity/notes_add.dart';
 import 'package:database_demo/activity/notes_update.dart';
+import 'package:database_demo/notification_model/local_notification_model.dart';
 import 'package:flutter/material.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 import '../database model/hive_data_model.dart';
 
@@ -11,9 +14,9 @@ class NotesDisplay extends StatefulWidget {
   State<NotesDisplay> createState() => _NotesDisplayState();
 }
 
+tz.TZDateTime scheduleTime = tz.TZDateTime.now(tz.local);
 List notesList = [];
 int i = 0;
-String currentTime = "${DateTime.now()}";
 
 class _NotesDisplayState extends State<NotesDisplay> {
   @override
@@ -22,6 +25,7 @@ class _NotesDisplayState extends State<NotesDisplay> {
       getListOfNotes();
     });
     super.initState();
+    tz.initializeTimeZones();
   }
 
   getListOfNotes() async {
@@ -68,12 +72,37 @@ class _NotesDisplayState extends State<NotesDisplay> {
           subtitle: Text("${notesList[index]['Description']}",
               style: const TextStyle(fontSize: 18)),
           trailing: Checkbox(
-              activeColor: Colors.red,
-              checkColor: Colors.black,
+              activeColor: Colors.black,
+              checkColor: Colors.white,
               value: notesList[index]['isCompleted'],
               onChanged: (value) {
                 setState(() {
                   notesList[index]['isCompleted'] = value;
+                  if (value == true) {
+                    if (i >
+                        '${DateTime.now()}'
+                            .compareTo(notesList[index]['toBeCompleted'])) {
+                      scheduleTime = tz.TZDateTime.from(
+                          DateTime.parse(notesList[index]['toBeCompleted']),
+                          tz.local);
+                      NotificationService()
+                          .cancelNotifications(notesList[index]['Id']);
+                    }
+                  } else {
+                    if (i >
+                        '${DateTime.now()}'
+                            .compareTo(notesList[index]['toBeCompleted'])) {
+                      scheduleTime = tz.TZDateTime.from(
+                          DateTime.parse(notesList[index]['toBeCompleted']),
+                          tz.local);
+                      NotificationService().showNotification(
+                        notesList[index]['Id'],
+                        notesList[index]['Title'],
+                        notesList[index]['Description'],
+                        scheduleTime,
+                      );
+                    }
+                  }
                 });
               }),
           onTap: () async {
@@ -94,12 +123,14 @@ class _NotesDisplayState extends State<NotesDisplay> {
               getListOfNotes();
             }
           },
-          tileColor:
-              (i < currentTime.compareTo(notesList[index]['toBeCompleted'])
-                  ? Colors.blueAccent
-                  : Colors.orangeAccent),
+          tileColor: (i <
+                  '${DateTime.now()}'
+                      .compareTo(notesList[index]['toBeCompleted'])
+              ? Colors.indigo.shade200
+              : Colors.red.shade200),
           onLongPress: () {
             HiveDataModel.deleteNote(key: notesList[index]['Id']);
+            NotificationService().cancelNotifications(notesList[index]['Id']);
             getListOfNotes();
           },
         ),

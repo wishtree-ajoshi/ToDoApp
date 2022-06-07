@@ -1,6 +1,4 @@
-//import 'package:database_demo/activity/notesdisplay.dart';
 import 'package:hive/hive.dart';
-
 import '../activity/display_notes.dart';
 
 class HiveDataModel {
