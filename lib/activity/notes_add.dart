@@ -20,6 +20,7 @@ class AddNotes extends StatefulWidget {
 final formKey = GlobalKey<FormState>();
 
 String? title, desc;
+List? dateFormat;
 String dateSelected = '', toDisplay = '', timeDisplay = '';
 tz.TZDateTime scheduleTime = tz.TZDateTime.now(tz.local);
 
@@ -89,6 +90,8 @@ class _AddNotesState extends State<AddNotes> {
                         setState(() {
                           String value1 = "${arr2[0]}/${arr[1]}/${arr[0]}";
                           String time = "${arr2.last}";
+                          dateFormat =
+                              "${arr[0]}-${arr[1]}-${arr[2]}".split(' ');
                           toDisplay = value1;
                           dateSelected = "$value:00";
                           timeDisplay = time;
@@ -120,6 +123,7 @@ class _AddNotesState extends State<AddNotes> {
                             'isCompleted': false,
                             'toBeCompleted': dateSelected,
                             'toDisplay': toDisplay,
+                            'noteDate': dateFormat?[0],
                             'timeDisplay': timeDisplay,
                           });
                           title = titleController.text;

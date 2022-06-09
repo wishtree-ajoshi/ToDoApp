@@ -17,6 +17,7 @@ class NotesDisplay extends StatefulWidget {
 tz.TZDateTime scheduleTime = tz.TZDateTime.now(tz.local);
 List notesList = [];
 int i = 0;
+bool? done;
 
 class _NotesDisplayState extends State<NotesDisplay> {
   @override
@@ -45,94 +46,104 @@ class _NotesDisplayState extends State<NotesDisplay> {
           )),
       body: (ListView.builder(
         itemCount: notesList.length,
-        itemBuilder: (context, index) => ListTile(
-          minLeadingWidth: 10,
-          leading: Column(
-            children: [
-              const Text(
-                "Do by:",
-                style: TextStyle(fontStyle: FontStyle.italic, fontSize: 15),
-              ),
-              Text(
-                "${notesList[index]['toDisplay']}",
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-              ),
-              Text(
-                "${notesList[index]['timeDisplay']}",
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-              ),
-            ],
-          ),
-          title: Text(
-            "${notesList[index]['Title']}",
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-          ),
-          subtitle: Text("${notesList[index]['Description']}",
-              style: const TextStyle(fontSize: 18)),
-          trailing: Checkbox(
-              activeColor: Colors.black,
-              checkColor: Colors.white,
-              value: notesList[index]['isCompleted'],
-              onChanged: (value) {
-                setState(() {
-                  notesList[index]['isCompleted'] = value;
-                  if (value == true) {
-                    if (i >
-                        '${DateTime.now()}'
-                            .compareTo(notesList[index]['toBeCompleted'])) {
-                      scheduleTime = tz.TZDateTime.from(
-                          DateTime.parse(notesList[index]['toBeCompleted']),
-                          tz.local);
-                      NotificationService()
-                          .cancelNotifications(notesList[index]['Id']);
+        itemBuilder: (context, index) => Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: ListTile(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            minLeadingWidth: 10,
+            leading: Column(
+              children: [
+                const Text(
+                  "Do by:",
+                  style: TextStyle(fontStyle: FontStyle.italic, fontSize: 15),
+                ),
+                Text(
+                  "${notesList[index]['toDisplay']}",
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                Text(
+                  "${notesList[index]['timeDisplay']}",
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ],
+            ),
+            title: Text(
+              "${notesList[index]['Title']}",
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+            ),
+            subtitle: Text("${notesList[index]['Description']}",
+                style: const TextStyle(fontSize: 18)),
+            trailing: Checkbox(
+                activeColor: Colors.black,
+                checkColor: Colors.white,
+                value: notesList[index]['isCompleted'],
+                onChanged: (value) {
+                  setState(() {
+                    notesList[index]['isCompleted'] = value;
+                    if (value == true) {
+                      done = true;
+                      if (i >
+                          '${DateTime.now()}'
+                              .compareTo(notesList[index]['toBeCompleted'])) {
+                        scheduleTime = tz.TZDateTime.from(
+                            DateTime.parse(notesList[index]['toBeCompleted']),
+                            tz.local);
+                        NotificationService()
+                            .cancelNotifications(notesList[index]['Id']);
+                      }
+                    } else {
+                      done = false;
+                      if (i >
+                          '${DateTime.now()}'
+                              .compareTo(notesList[index]['toBeCompleted'])) {
+                        scheduleTime = tz.TZDateTime.from(
+                            DateTime.parse(notesList[index]['toBeCompleted']),
+                            tz.local);
+                        NotificationService().showNotification(
+                          notesList[index]['Id'],
+                          notesList[index]['Title'],
+                          notesList[index]['Description'],
+                          scheduleTime,
+                        );
+                      }
                     }
-                  } else {
-                    if (i >
+                  });
+                }),
+            onTap: () async {
+              String result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => NoteUpdate(
+                      title: notesList[index]['Title'],
+                      description: notesList[index]['Description'],
+                      id: notesList[index]['Id'],
+                      toBeCompleted: notesList[index]['toBeCompleted'],
+                      toDisplay: notesList[index]['toDisplay'],
+                      isCompleted: notesList[index]['isCompleted'],
+                      timeDisplay: notesList[index]['timeDisplay'],
+                      noteDate: notesList[index]['noteDate'],
+                    ),
+                  ));
+              if (result == 'updated') {
+                getListOfNotes();
+              }
+            },
+            tileColor: (done == true
+                ? Colors.indigo.shade200
+                : (i <
                         '${DateTime.now()}'
-                            .compareTo(notesList[index]['toBeCompleted'])) {
-                      scheduleTime = tz.TZDateTime.from(
-                          DateTime.parse(notesList[index]['toBeCompleted']),
-                          tz.local);
-                      NotificationService().showNotification(
-                        notesList[index]['Id'],
-                        notesList[index]['Title'],
-                        notesList[index]['Description'],
-                        scheduleTime,
-                      );
-                    }
-                  }
-                });
-              }),
-          onTap: () async {
-            String result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => NoteUpdate(
-                    title: notesList[index]['Title'],
-                    description: notesList[index]['Description'],
-                    id: notesList[index]['Id'],
-                    toBeCompleted: notesList[index]['toBeCompleted'],
-                    toDisplay: notesList[index]['toDisplay'],
-                    isCompleted: notesList[index]['isCompleted'],
-                    timeDisplay: notesList[index]['timeDisplay'],
-                  ),
-                ));
-            if (result == 'updated') {
+                            .compareTo(notesList[index]['toBeCompleted'])
+                    ? Colors.indigo.shade200
+                    : Colors.red.shade200)),
+            onLongPress: () {
+              HiveDataModel.deleteNote(key: notesList[index]['Id']);
+              NotificationService().cancelNotifications(notesList[index]['Id']);
               getListOfNotes();
-            }
-          },
-          tileColor: (i <
-                  '${DateTime.now()}'
-                      .compareTo(notesList[index]['toBeCompleted'])
-              ? Colors.indigo.shade200
-              : Colors.red.shade200),
-          onLongPress: () {
-            HiveDataModel.deleteNote(key: notesList[index]['Id']);
-            NotificationService().cancelNotifications(notesList[index]['Id']);
-            getListOfNotes();
-          },
+            },
+          ),
         ),
       )),
       floatingActionButton: FloatingActionButton(
