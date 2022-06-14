@@ -1,13 +1,24 @@
+import 'dart:io';
+
+import 'package:database_demo/activity/notes_add.dart';
 import 'package:database_demo/notification_model/local_notification_model.dart';
 import 'package:date_time_picker/date_time_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../database model/hive_data_model.dart';
 
 final formKey = GlobalKey<FormState>();
 
 class NoteUpdate extends StatefulWidget {
-  String title, description, toBeCompleted, toDisplay, timeDisplay, noteDate;
+  String title,
+      description,
+      toBeCompleted,
+      toDisplay,
+      timeDisplay,
+      noteDate,
+      imageUrl;
   int id;
   bool isCompleted;
   NoteUpdate({
@@ -20,6 +31,7 @@ class NoteUpdate extends StatefulWidget {
     this.isCompleted = false,
     this.timeDisplay = '',
     this.noteDate = '',
+    this.imageUrl = '',
   }) : super(key: key);
 
   @override
@@ -38,11 +50,48 @@ class _NoteUpdateState extends State<NoteUpdate> {
     super.initState();
   }
 
+  File? image;
+  Future pickImageGallery() async {
+    try {
+      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+      if (image == null) return;
+
+      final imageTemp = File(image.path);
+      setState(() {
+        this.image = imageTemp;
+        (image.path != widget.imageUrl) ? widget.imageUrl = image.path : null;
+        // print(widget.imageUrl);
+      });
+    } on PlatformException catch (e) {
+      print('Failed to pick image: $e');
+    }
+  }
+
+  Future pickImageCamera() async {
+    try {
+      final image = await ImagePicker().pickImage(source: ImageSource.camera);
+
+      if (image == null) return;
+
+      final imageTemp = File(image.path);
+
+      setState(() {
+        this.image = imageTemp;
+        (image.path != widget.imageUrl) ? widget.imageUrl = image.path : null;
+        //print(widget.imageUrl);
+      });
+    } on PlatformException catch (e) {
+      print('Failed to pick image: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     updateTitleController.text = widget.title;
     updateDetailsController.text = widget.description;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Update Note'),
         centerTitle: true,
@@ -109,6 +158,37 @@ class _NoteUpdateState extends State<NoteUpdate> {
                     },
                   ),
                 ),
+                Row(
+                  children: [
+                    Column(
+                      children: [
+                        ElevatedButton(
+                            onPressed: () {
+                              pickImageGallery();
+                            },
+                            child: const Text('Pick Image(Galley)')),
+                        ElevatedButton(
+                            onPressed: () {
+                              pickImageCamera();
+                            },
+                            child: const Text('Pick Image(Camera)')),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: 10,
+                        left: 10,
+                      ),
+                      child: SizedBox(
+                        height: 120,
+                        width: 120,
+                        child: image != null
+                            ? Image.file(image!)
+                            : const Text("No image selected"),
+                      ),
+                    ),
+                  ],
+                ),
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.all(10),
@@ -133,6 +213,7 @@ class _NoteUpdateState extends State<NoteUpdate> {
                             'toDisplay': widget.toDisplay,
                             'noteDate': dateFormat?[0],
                             'timeDisplay': widget.timeDisplay,
+                            'imageUrl': widget.imageUrl,
                           });
                           updateTitleController.clear();
                           updateDetailsController.clear();

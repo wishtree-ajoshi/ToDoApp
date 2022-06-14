@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:database_demo/notification_model/local_notification_model.dart';
 import 'package:date_time_picker/date_time_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../database model/hive_data_model.dart';
@@ -18,10 +22,9 @@ class AddNotes extends StatefulWidget {
 }
 
 final formKey = GlobalKey<FormState>();
-
 String? title, desc;
 List? dateFormat;
-String dateSelected = '', toDisplay = '', timeDisplay = '';
+String dateSelected = '', toDisplay = '', timeDisplay = '', imageUrl = '';
 tz.TZDateTime scheduleTime = tz.TZDateTime.now(tz.local);
 
 TextEditingController titleController = TextEditingController();
@@ -33,9 +36,44 @@ class _AddNotesState extends State<AddNotes> {
     super.initState();
   }
 
+  File? image;
+  Future pickImageGallery() async {
+    try {
+      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+      if (image == null) return;
+
+      final imageTemp = File(image.path);
+      setState(() {
+        this.image = imageTemp;
+        (image.path != '') ? imageUrl = image.path : null;
+      });
+    } on PlatformException catch (e) {
+      print('Failed to pick image: $e');
+    }
+  }
+
+  Future pickImageCamera() async {
+    try {
+      final image = await ImagePicker().pickImage(source: ImageSource.camera);
+
+      if (image == null) return;
+
+      final imageTemp = File(image.path);
+
+      setState(() {
+        this.image = imageTemp;
+        (image.path != '') ? imageUrl = image.path : null;
+      });
+    } on PlatformException catch (e) {
+      print('Failed to pick image: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Add Note'),
         centerTitle: true,
@@ -100,6 +138,37 @@ class _AddNotesState extends State<AddNotes> {
                     },
                   ),
                 ),
+                Row(
+                  children: [
+                    Column(
+                      children: [
+                        ElevatedButton(
+                            onPressed: () {
+                              pickImageGallery();
+                            },
+                            child: const Text('Pick Image(Galley)')),
+                        ElevatedButton(
+                            onPressed: () {
+                              pickImageCamera();
+                            },
+                            child: const Text('Pick Image(Camera)')),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: 10,
+                        left: 10,
+                      ),
+                      child: SizedBox(
+                        height: 120,
+                        width: 120,
+                        child: image != null
+                            ? Image.file(image!)
+                            : const Text("No image selected"),
+                      ),
+                    ),
+                  ],
+                ),
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.all(10),
@@ -125,6 +194,7 @@ class _AddNotesState extends State<AddNotes> {
                             'toDisplay': toDisplay,
                             'noteDate': dateFormat?[0],
                             'timeDisplay': timeDisplay,
+                            'imageUrl': imageUrl,
                           });
                           title = titleController.text;
                           desc = detailsController.text;
