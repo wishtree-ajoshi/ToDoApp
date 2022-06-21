@@ -10,9 +10,7 @@ class HiveDataModel {
   }
 
   static Future addNote({key, value}) async {
-    todoList?.put(key, value).then((value) {
-      getNotes();
-    });
+    todoList?.put(key, value);
   }
 
   static Future<dynamic> getNotes() async {
@@ -20,13 +18,10 @@ class HiveDataModel {
   }
 
   static updateNote({key, value}) async {
-    todoList?.put(key, value).then((value) {
-      getNotes();
-    });
+    todoList?.put(key, value);
   }
 
   static deleteNote({key}) async {
     todoList?.delete(key);
-    return getNotes();
   }
 }

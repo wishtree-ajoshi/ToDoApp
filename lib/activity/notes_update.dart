@@ -1,13 +1,10 @@
 import 'dart:io';
-
-import 'package:database_demo/activity/notes_add.dart';
 import 'package:database_demo/notification_model/local_notification_model.dart';
 import 'package:date_time_picker/date_time_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../database model/hive_data_model.dart';
+import '../image_selection/image_picker.dart';
 
 final formKey = GlobalKey<FormState>();
 
@@ -18,7 +15,8 @@ class NoteUpdate extends StatefulWidget {
       toDisplay,
       timeDisplay,
       noteDate,
-      imageUrl;
+      imageUrl,
+      dateAdded;
   int id;
   bool isCompleted;
   NoteUpdate({
@@ -32,6 +30,7 @@ class NoteUpdate extends StatefulWidget {
     this.timeDisplay = '',
     this.noteDate = '',
     this.imageUrl = '',
+    this.dateAdded = '',
   }) : super(key: key);
 
   @override
@@ -41,6 +40,7 @@ class NoteUpdate extends StatefulWidget {
 tz.TZDateTime scheduleTime = tz.TZDateTime.now(tz.local);
 List notesList = [];
 List? dateFormat;
+File? _image;
 TextEditingController updateTitleController = TextEditingController();
 TextEditingController updateDetailsController = TextEditingController();
 
@@ -48,41 +48,26 @@ class _NoteUpdateState extends State<NoteUpdate> {
   @override
   void initState() {
     super.initState();
+    _image = File(widget.imageUrl);
   }
 
-  File? image;
-  Future pickImageGallery() async {
-    try {
-      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-
-      if (image == null) return;
-
-      final imageTemp = File(image.path);
-      setState(() {
-        this.image = imageTemp;
-        (image.path != widget.imageUrl) ? widget.imageUrl = image.path : null;
-        // print(widget.imageUrl);
-      });
-    } on PlatformException catch (e) {
-      print('Failed to pick image: $e');
-    }
-  }
-
-  Future pickImageCamera() async {
-    try {
-      final image = await ImagePicker().pickImage(source: ImageSource.camera);
-
-      if (image == null) return;
-
-      final imageTemp = File(image.path);
-
-      setState(() {
-        this.image = imageTemp;
-        (image.path != widget.imageUrl) ? widget.imageUrl = image.path : null;
-        //print(widget.imageUrl);
-      });
-    } on PlatformException catch (e) {
-      print('Failed to pick image: $e');
+  void showNotifications() {
+    if (widget.imageUrl == '') {
+      NotificationService().showNotification(
+        widget.id,
+        updateTitleController.text,
+        updateDetailsController.text,
+        scheduleTime,
+      );
+    } else {
+      NotificationService().cancelNotifications(widget.id);
+      NotificationService().showImageNotification(
+        widget.id,
+        updateTitleController.text,
+        updateDetailsController.text,
+        scheduleTime,
+        widget.imageUrl,
+      );
     }
   }
 
@@ -97,12 +82,11 @@ class _NoteUpdateState extends State<NoteUpdate> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(50),
+        padding: const EdgeInsets.only(top: 20, left: 50, right: 50),
         child: Form(
             key: formKey,
             child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 TextFormField(
                   validator: (value) {
@@ -112,7 +96,7 @@ class _NoteUpdateState extends State<NoteUpdate> {
                   controller: updateTitleController,
                   maxLength: 20,
                   decoration: const InputDecoration(
-                    label: Text("Title"),
+                    label: Text("Title*"),
                   ),
                 ),
                 TextFormField(
@@ -136,6 +120,8 @@ class _NoteUpdateState extends State<NoteUpdate> {
                       }
                     },
                     dateMask: 'dd/MM/yyyy',
+                    timeLabelText: "Select Time*",
+                    dateLabelText: "Select Date*",
                     initialDate: DateTime.parse(widget.noteDate),
                     firstDate: DateTime.parse(widget.noteDate),
                     type: DateTimePickerType.dateTimeSeparate,
@@ -158,36 +144,47 @@ class _NoteUpdateState extends State<NoteUpdate> {
                     },
                   ),
                 ),
-                Row(
-                  children: [
-                    Column(
-                      children: [
-                        ElevatedButton(
-                            onPressed: () {
-                              pickImageGallery();
-                            },
-                            child: const Text('Pick Image(Galley)')),
-                        ElevatedButton(
-                            onPressed: () {
-                              pickImageCamera();
-                            },
-                            child: const Text('Pick Image(Camera)')),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        top: 10,
-                        left: 10,
-                      ),
-                      child: SizedBox(
-                        height: 120,
-                        width: 120,
-                        child: image != null
-                            ? Image.file(image!)
-                            : const Text("No image selected"),
-                      ),
-                    ),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.all(5.0),
+                  child: ElevatedButton(
+                      onPressed: () async {
+                        widget.imageUrl = await ImageSelector()
+                            .pickImageGallery(widget.imageUrl, _image);
+                        if (widget.imageUrl == null) {
+                          widget.imageUrl = _image!.path;
+                        }
+                        final File newImage = File(widget.imageUrl);
+                        setState(() {
+                          _image = newImage;
+                        });
+                      },
+                      child: const Text('Pick Image(Galley)')),
+                ),
+                ElevatedButton(
+                    onPressed: () async {
+                      widget.imageUrl = await ImageSelector()
+                          .pickImageCamera(widget.imageUrl, _image);
+                      if (widget.imageUrl == null) {
+                        widget.imageUrl = _image!.path;
+                      }
+                      final File newImage = File(widget.imageUrl);
+                      setState(() {
+                        _image = newImage;
+                      });
+                    },
+                    child: const Text('Pick Image(Camera)')),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    left: 10,
+                  ),
+                  child: SizedBox(
+                    height: 150,
+                    width: 150,
+                    child: widget.imageUrl != ''
+                        ? Image.file(_image!)
+                        : const Text("No image selected"),
+                  ),
                 ),
                 Center(
                   child: Padding(
@@ -198,12 +195,8 @@ class _NoteUpdateState extends State<NoteUpdate> {
                           scheduleTime = tz.TZDateTime.from(
                               DateTime.parse(widget.toBeCompleted), tz.local);
 
-                          NotificationService().showNotification(
-                            widget.id,
-                            updateTitleController.text,
-                            updateDetailsController.text,
-                            scheduleTime,
-                          );
+                          showNotifications();
+
                           HiveDataModel.updateNote(key: widget.id, value: {
                             'Title': updateTitleController.text,
                             'Description': updateDetailsController.text,
@@ -214,6 +207,7 @@ class _NoteUpdateState extends State<NoteUpdate> {
                             'noteDate': dateFormat?[0],
                             'timeDisplay': widget.timeDisplay,
                             'imageUrl': widget.imageUrl,
+                            'dateAdded': DateTime.now().toString(),
                           });
                           updateTitleController.clear();
                           updateDetailsController.clear();

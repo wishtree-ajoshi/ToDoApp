@@ -72,4 +72,43 @@ class NotificationService {
           true, // To show notification even when the app is closed
     );
   }
+
+  Future<void> showImageNotification(
+    int id,
+    String title,
+    String body,
+    tz.TZDateTime time, //Time used for sending notifications
+    String notiImage,
+  ) async {
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      id,
+      title,
+      body,
+      time,
+      NotificationDetails(
+        // Android details
+        android: AndroidNotificationDetails('main_channel', 'Main Channel',
+            channelDescription: "Reminders",
+            styleInformation: BigPictureStyleInformation(
+              FilePathAndroidBitmap(notiImage),
+              largeIcon: FilePathAndroidBitmap(notiImage),
+            ),
+            importance: Importance.max,
+            priority: Priority.max),
+        // iOS details
+        iOS: const IOSNotificationDetails(
+          sound: 'default.wav',
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+
+      // Type of time interpretation
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      androidAllowWhileIdle:
+          true, // To show notification even when the app is closed
+    );
+  }
 }

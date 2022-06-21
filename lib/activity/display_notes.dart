@@ -1,11 +1,10 @@
+import 'dart:io';
 import 'package:database_demo/activity/notes_add.dart';
 import 'package:database_demo/activity/notes_update.dart';
-import 'package:database_demo/image_picker_demo.dart';
 import 'package:database_demo/notification_model/local_notification_model.dart';
 import 'package:flutter/material.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-
 import '../database model/hive_data_model.dart';
 
 class NotesDisplay extends StatefulWidget {
@@ -19,6 +18,7 @@ tz.TZDateTime scheduleTime = tz.TZDateTime.now(tz.local);
 List notesList = [];
 bool? done;
 String? temp;
+DateTime? timeAdded;
 
 class _NotesDisplayState extends State<NotesDisplay> {
   @override
@@ -28,6 +28,32 @@ class _NotesDisplayState extends State<NotesDisplay> {
     });
     super.initState();
     tz.initializeTimeZones();
+  }
+
+  Future<void> deleteFile(File file) async {
+    try {
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (e) {
+      print("$e");
+    }
+  }
+
+  String convertToAgo(DateTime input) {
+    Duration diff = DateTime.now().difference(input);
+
+    if (diff.inDays >= 1) {
+      return '${diff.inDays} d(s) ago';
+    } else if (diff.inHours >= 1) {
+      return '${diff.inHours} hr(s) ago';
+    } else if (diff.inMinutes >= 1) {
+      return '${diff.inMinutes} min(s) ago';
+    } else if (diff.inSeconds >= 1) {
+      return '${diff.inSeconds} sec(s) ago';
+    } else {
+      return 'just now';
+    }
   }
 
   getListOfNotes() async {
@@ -41,7 +67,7 @@ class _NotesDisplayState extends State<NotesDisplay> {
         ? Colors.indigo.shade200
         : (notesList[index]['isCompleted'] == true)
             ? Colors.indigo.shade200
-            : Colors.yellow.shade200);
+            : Colors.white);
   }
 
   void onTick(index, value) {
@@ -59,18 +85,26 @@ class _NotesDisplayState extends State<NotesDisplay> {
           '${DateTime.now()}'.compareTo(notesList[index]['toBeCompleted'])) {
         scheduleTime = tz.TZDateTime.from(
             DateTime.parse(notesList[index]['toBeCompleted']), tz.local);
-        NotificationService().showNotification(
-          notesList[index]['Id'],
-          notesList[index]['Title'],
-          notesList[index]['Description'],
-          scheduleTime,
-        );
+        (notesList[index]['imageUrl'] != '')
+            ? NotificationService().showImageNotification(
+                notesList[index]['Id'],
+                notesList[index]['Title'],
+                notesList[index]['Description'],
+                scheduleTime,
+                notesList[index]['imageUrl'])
+            : NotificationService().showNotification(
+                notesList[index]['Id'],
+                notesList[index]['Title'],
+                notesList[index]['Description'],
+                scheduleTime,
+              );
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    setState(() {});
     return Scaffold(
       backgroundColor: Colors.indigo.shade100,
       appBar: AppBar(
@@ -111,16 +145,23 @@ class _NotesDisplayState extends State<NotesDisplay> {
             ),
             subtitle: Text("${notesList[index]['Description']}",
                 style: const TextStyle(fontSize: 18)),
-            trailing: Checkbox(
-                activeColor: Colors.black,
-                checkColor: Colors.white,
-                value: notesList[index]['isCompleted'],
-                onChanged: (value) {
-                  setState(() {
-                    notesList[index]['isCompleted'] = value;
-                    onTick(index, value);
-                  });
-                }),
+            visualDensity: const VisualDensity(horizontal: 1, vertical: 4),
+            trailing: Column(
+              children: [
+                Checkbox(
+                    activeColor: Colors.black,
+                    checkColor: Colors.white,
+                    value: notesList[index]['isCompleted'],
+                    onChanged: (value) {
+                      setState(() {
+                        notesList[index]['isCompleted'] = value;
+                        onTick(index, value);
+                      });
+                    }),
+                Text(
+                    "${convertToAgo(DateTime.parse(notesList[index]['dateAdded']))}"),
+              ],
+            ),
             onTap: () async {
               String result = await Navigator.push(
                   context,
@@ -135,6 +176,7 @@ class _NotesDisplayState extends State<NotesDisplay> {
                       timeDisplay: notesList[index]['timeDisplay'],
                       noteDate: notesList[index]['noteDate'],
                       imageUrl: notesList[index]['imageUrl'],
+                      dateAdded: notesList[index]['dateAdded'],
                     ),
                   ));
               if (result == 'updated') {
@@ -143,6 +185,7 @@ class _NotesDisplayState extends State<NotesDisplay> {
             },
             tileColor: colourTile(index),
             onLongPress: () {
+              deleteFile(File(notesList[index]['imageUrl']));
               HiveDataModel.deleteNote(key: notesList[index]['Id']);
               NotificationService().cancelNotifications(notesList[index]['Id']);
               getListOfNotes();
