@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.database_demo">
    <application
-        android:label="database_demo"
+        android:label="To-ToDo"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
