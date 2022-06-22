@@ -1,6 +1,7 @@
-import 'package:database_demo/activity/display_notes.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:database_demo/activity/display_notes.dart';
+
 import 'database model/hive_data_model.dart';
 import 'notification_model/local_notification_model.dart';
 
@@ -16,6 +17,7 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

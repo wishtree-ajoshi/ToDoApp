@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:database_demo/activity/notes_add.dart';
 import 'package:database_demo/activity/notes_update.dart';
@@ -104,7 +105,6 @@ class _NotesDisplayState extends State<NotesDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    setState(() {});
     return Scaffold(
       backgroundColor: Colors.indigo.shade100,
       appBar: AppBar(
